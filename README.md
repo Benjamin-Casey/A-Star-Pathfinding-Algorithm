@@ -1,1 +1,1 @@
-# Pathfind
+# A* Pathfinding
