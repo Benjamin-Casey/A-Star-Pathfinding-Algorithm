@@ -74,35 +74,32 @@ close_tiles([Node(2, 2), Node(1, 2), Node(2, 1), Node(2,0)], grid)
 while True:
     # Get lowest fcost
     current = min(open, key=attrgetter('fcost'))
-    #print("current node = {}".format(node))
+
     closed.append(current)
     open.remove(current)
 
     # Check if we made it.
     if current == target_node:
-        #print("Found target node: {}!".format(current))
         break
 
-    # For each neighbour, check if it's in closed or if it's traversable
     for node in current.neighbours(grid):
+        # For each neighbour, check if it's in closed or if it's traversable
         if node in closed or not node.traversable:
             continue
-
-        # TODO add OR if new path to neighbour is shorter
-        # Check if this is working
-        if node not in open or node.fcost < current.fcost:
+        
+        # 
+        if node not in open or node.gcost < current.gcost:
             get_costs(node)
             node.parent = current
             if not (node in open) and not node == start_node:
-                #print("moving {} to open".format(node))
                 open.append(node)
 
+# Put path in a list
 path = []
 temp = closed[-1]
 while temp != start_node:
     path.append(temp)
     temp = temp.parent
-
 path.reverse()
 
 # print("Oepn: {}".format(path))
