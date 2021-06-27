@@ -17,7 +17,6 @@ class Node:
     def __repr__(self):
         return """({}, {})""".format(self.x, self.y)
 
-
     # Return list of neighbouring nodes
     def neighbours(self, grid):
         n = []
@@ -33,9 +32,10 @@ class Node:
                 n.append(node)
         return n
 
-def get_costs(node):
-    g = node.gcost = math.sqrt((node.x - target_node.x)**2 + (node.y - target_node.y)**2)
-    h = node.hcost = math.sqrt((node.x -start_node.x)**2 + (node.y -start_node.y)**2)
+
+def get_costs(node, start_node, target_node):
+    h = node.gcost = math.sqrt((node.x - target_node.x)**2 + (node.y - target_node.y)**2)
+    g = node.hcost = math.sqrt((node.x -start_node.x)**2 + (node.y -start_node.y)**2)
     node.fcost = g+h
 
 # Takes a list of nodes, then sets the nodes in a given grid to non-traversable
@@ -45,62 +45,65 @@ def close_tiles(closed_nodes, grid):
             node.traversable = False
 
 
-# Init lists
-open = []       # Set of nodes to be evaluated
-closed = []     # Set of nodes already evaluated
-grid = []       # Set of all nodes
+def pathfind(GRID_SIZE_X, GRID_SIZE_Y, start_node, target_node, walls):
+    # Init lists
+    open = []       # Set of nodes to be evaluated
+    closed = []     # Set of nodes already evaluated
+    grid = []       # Set of all nodes
 
-# Populate closed, open nodes later
-GRID_SIZE_X = 4
-GRID_SIZE_Y = 4
+    # Populate grid
+    for x in range(GRID_SIZE_X):
+        for y in range(GRID_SIZE_Y):
+            grid.append(Node(x, y))
+                                                                                                                
+    # Add start node to open
+    for node in grid:
+        if node == start_node:
+            open.append(node)
+            break
 
-# Start and end
-start_node = Node(0,0)
-target_node = Node(3, 3)
+    if walls:
+        close_tiles(walls, grid)
 
-# Populate grid
-for x in range(GRID_SIZE_X):
-    for y in range(GRID_SIZE_Y):
-        grid.append(Node(x, y))
-                                                                                                            
-# Add start node to open
-for node in grid:
-    if node == start_node:
-        open.append(node)
-        break
+    while True:
+        # Get lowest fcost
+        current = min(open, key=attrgetter('fcost'))
 
-close_tiles([Node(2, 2), Node(1, 2), Node(2, 1), Node(2,0)], grid)
+        closed.append(current)
+        open.remove(current)
 
-while True:
-    # Get lowest fcost
-    current = min(open, key=attrgetter('fcost'))
+        # Check if we're at the end
+        if current == target_node:
+            break
 
-    closed.append(current)
-    open.remove(current)
+        for node in current.neighbours(grid):
+            # For each neighbour, check if it's in closed or if it's traversable
+            if node in closed or not node.traversable:
+                continue
+            
+            # Check gcost for faster node if fcost is tied
+            if node not in open or node.gcost < current.gcost:
+                get_costs(node, start_node, target_node)
+                node.parent = current
+                if not (node in open) and not node == start_node:
+                    open.append(node)
 
-    # Check if we made it.
-    if current == target_node:
-        break
+    # Put path in a list
+    path = []
+    temp = closed[-1]
+    while temp != start_node:
+        path.append(temp)
+        temp = temp.parent
+    path.reverse()
 
-    for node in current.neighbours(grid):
-        # For each neighbour, check if it's in closed or if it's traversable
-        if node in closed or not node.traversable:
-            continue
-        
-        # 
-        if node not in open or node.gcost < current.gcost:
-            get_costs(node)
-            node.parent = current
-            if not (node in open) and not node == start_node:
-                open.append(node)
+    return path
 
-# Put path in a list
-path = []
-temp = closed[-1]
-while temp != start_node:
-    path.append(temp)
-    temp = temp.parent
-path.reverse()
 
-# print("Oepn: {}".format(path))
-print(*path)
+# if __name__ == "__main__":
+#     GRID_SIZE_X = 4
+#     GRID_SIZE_Y = 4
+#     start_node = Node(0,0)
+#     target_node = Node(3, 3)
+#     walls = [Node(2, 2)]
+
+#     print(pathfind(GRID_SIZE_X, GRID_SIZE_Y, start_node, target_node, walls))
