@@ -38,6 +38,12 @@ def get_costs(node):
     h = node.hcost = math.sqrt((node.x -start_node.x)**2 + (node.y -start_node.y)**2)
     node.fcost = g+h
 
+# Takes a list of nodes, then sets the nodes in a given grid to non-traversable
+def close_tiles(closed_nodes, grid):
+    for node in grid:
+        if node in closed_nodes:
+            node.traversable = False
+
 
 # Init lists
 open = []       # Set of nodes to be evaluated
@@ -63,17 +69,18 @@ for node in grid:
         open.append(node)
         break
 
+close_tiles([Node(2, 2), Node(1, 2), Node(2, 1), Node(2,0)], grid)
 
 while True:
     # Get lowest fcost
     current = min(open, key=attrgetter('fcost'))
-    print("current node = {}".format(node))
+    #print("current node = {}".format(node))
     closed.append(current)
     open.remove(current)
 
     # Check if we made it.
     if current == target_node:
-        print("Found target node: {}!".format(current))
+        #print("Found target node: {}!".format(current))
         break
 
     # For each neighbour, check if it's in closed or if it's traversable
@@ -87,5 +94,16 @@ while True:
             get_costs(node)
             node.parent = current
             if not (node in open) and not node == start_node:
-                print("moving {} to open".format(node))
+                #print("moving {} to open".format(node))
                 open.append(node)
+
+path = []
+temp = closed[-1]
+while temp != start_node:
+    path.append(temp)
+    temp = temp.parent
+
+path.reverse()
+
+# print("Oepn: {}".format(path))
+print(*path)
